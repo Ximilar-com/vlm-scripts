@@ -1,0 +1,14 @@
+# Model files (downloaded from Ximilar Platform)
+*stored/
+*.safetensors
+*.json
+*.jinja
+tokenizer.*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
