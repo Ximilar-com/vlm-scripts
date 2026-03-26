@@ -7,6 +7,7 @@ run.py script imports from here and only defines model-specific config.
 """
 
 import argparse
+import json
 import logging
 import time
 from pathlib import Path
@@ -79,7 +80,7 @@ def get_arg_parser(model_id: str) -> argparse.ArgumentParser:
         description=f"Run inference with {model_id}",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--model_path", type=str, required=True, help="Path to the model directory (full or LoRA)")
+    parser.add_argument("--model_path", type=str, required=True, help="Path to model directory (safetensors, .pt, or LoRA adapter)")
     parser.add_argument("--images", nargs="+", default=[], help="Image file paths or URLs (optional for text-only)")
     parser.add_argument("--user_prompt", type=str, default="Describe this image.", help="User prompt")
     parser.add_argument("--system_prompt", type=str, default=None, help="System prompt (optional)")
@@ -263,6 +264,7 @@ def print_config(
         system_prompt: System prompt text (or None).
     """
     is_lora = (Path(model_path) / "adapter_config.json").exists()
+    is_pt = (Path(model_path) / "model.pt").exists()
 
     # ANSI color codes for terminal output
     G = "\033[32m"  # green
@@ -280,7 +282,8 @@ def print_config(
     # Model
     print(kv("Model ID", model_id))
     print(kv("Model path", model_path))
-    print(kv("Model type", "LoRA adapter" if is_lora else "Full model"))
+    model_type_str = "LoRA adapter" if is_lora else "Full model (.pt)" if is_pt else "Full model (safetensors)"
+    print(kv("Model type", model_type_str))
 
     # Device and dtype
     print(kv("Device", device))
@@ -344,8 +347,6 @@ def _read_saved_config(model_path: str) -> dict:
     Returns:
         Dict of config keys and values from saved config files.
     """
-    import json
-
     config = {}
     base = Path(model_path)
     if not base.is_dir():
@@ -416,6 +417,7 @@ def load_model(
     import os
 
     is_lora = (Path(model_path) / "adapter_config.json").exists()
+    is_pt = (Path(model_path) / "model.pt").exists()
 
     # Filter processor kwargs: skip defaults that are already saved in the
     # model's config files. This prevents overriding settings from training
@@ -456,8 +458,29 @@ def load_model(
         has_local_processor = (Path(model_path) / "preprocessor_config.json").exists()
         processor_path = model_path if has_local_processor else model_id
         processor = AutoProcessor.from_pretrained(processor_path, token=hf_token, **_processor_kwargs)
+    elif is_pt:
+        # PyTorch .pt file: build model from config, then load state_dict
+        from transformers import AutoConfig
+
+        pt_file = Path(model_path) / "model.pt"
+        logger.info("Detected PyTorch weights (model.pt found)")
+        logger.info("Loading state_dict from: %s", pt_file)
+        state_dict = torch.load(pt_file, map_location=load_device, weights_only=True)
+
+        config = AutoConfig.from_pretrained(model_path)
+        model = AutoModelForImageTextToText.from_config(config, attn_implementation="eager")
+        model.load_state_dict(state_dict)
+        del state_dict  # free memory before dtype/device transfer
+        model = model.to(dtype=dtype, device=load_device)
+        model.eval()
+
+        if "mps" in device:
+            logger.info("Moving model to MPS...")
+            model = model.to(device)
+
+        processor = AutoProcessor.from_pretrained(model_path, **_processor_kwargs)
     else:
-        # Fully fine-tuned model: load everything from the local directory
+        # Fully fine-tuned model (safetensors): load directly from the directory
         logger.info("Loading full model: %s", model_path)
         model = AutoModelForImageTextToText.from_pretrained(
             model_path,

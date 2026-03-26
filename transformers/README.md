@@ -1,8 +1,14 @@
-# Ximilar VLM Scripts
+# Ximilar VLM Scripts — Transformers
 
-Simple inference scripts for running your trained VLM (Vision-Language) models from the [Ximilar Platform](https://www.ximilar.com).
+Simple inference scripts for running your trained VLM (Vision-Language) models from the [Ximilar Platform](https://www.ximilar.com) using HuggingFace Transformers.
 
-Each model has its own `run.py` script. Your model is either a **fully fine-tuned** model or a **LoRA adapter** on top of a base model from HuggingFace. The scripts handle both automatically.
+Each model has its own `run.py` script. Your model can be:
+
+- **LoRA adapter** (`.safetensors`) — on top of a base model from HuggingFace
+- **Full model** (`.safetensors`) — fully fine-tuned weights
+- **Full model** (`.pt`) — PyTorch state_dict export
+
+The scripts auto-detect the format from the model directory and handle all three automatically.
 
 ## Supported Models
 
@@ -71,6 +77,13 @@ To make it permanent, add the line to your `~/.bashrc` or `~/.zshrc`.
 Without this, gated models will fail with `OSError: ... does not appear to have a file named model.safetensors`.
 
 ## Usage
+
+All commands below assume you are inside the `transformers/` directory:
+
+```bash
+cd transformers
+source .venv/bin/activate
+```
 
 ### Basic usage
 
@@ -144,10 +157,13 @@ Each model has sensible defaults from its HuggingFace config. You can override t
 
 ## How it works
 
-1. **Full model**: If your model directory contains the full model weights, it loads directly from that path.
-2. **LoRA adapter**: If your model directory contains `adapter_config.json`, the script downloads the base model from HuggingFace and applies your LoRA adapter on top.
+The script auto-detects the model format from the directory contents:
 
-The base model is automatically cached in `~/.cache/huggingface/hub` after the first download.
+1. **LoRA adapter**: If `adapter_config.json` is found, it downloads the base model from HuggingFace and applies your LoRA weights on top.
+2. **Full model (.pt)**: If `model.pt` is found, it loads the PyTorch state_dict via `torch.load()` and builds the model from `config.json`.
+3. **Full model (safetensors)**: Otherwise, it loads `.safetensors` weights directly via `from_pretrained()`.
+
+The base model (for LoRA) is automatically cached in `~/.cache/huggingface/hub` after the first download.
 
 ### Image processing and tiling
 
@@ -250,7 +266,7 @@ This is a harmless warning from transformers >= 5.x. The parameter still works. 
 ## Project structure
 
 ```
-huggingface/
+transformers/
 ├── base.py                         # Shared inference utilities
 ├── models/
 │   ├── LFM2-VL-450M/run.py        # LiquidAI LFM2-VL-450M
@@ -259,5 +275,10 @@ huggingface/
 │   ├── Qwen3-VL-2B-Instruct/run.py # Qwen3-VL 2B
 │   └── Qwen3-VL-4B-Instruct/run.py # Qwen3-VL 4B
 ├── examples/                       # Ready-to-run bash examples
+├── stored/                         # Downloaded model directories
+│   ├── lf2-450-lora/              # LoRA adapter (.safetensors)
+│   ├── qwen3-2b-lora/            # LoRA adapter (.safetensors)
+│   ├── gemma-lora/                # LoRA adapter (.safetensors)
+│   └── model_quantized_pt/        # Full model (.pt)
 └── README.md
 ```
