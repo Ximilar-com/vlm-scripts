@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Run inference with LiquidAI/LFM2.5-VL-1.6B.
+"""Run inference with LiquidAI/LFM2.5-VL-450M.
 
 Usage:
-    python models/LFM2.5-VL-1.6B/run.py --model_path /path/to/model --images photo.jpg
-    python models/LFM2.5-VL-1.6B/run.py --model_path /path/to/model --images img.jpg --user_prompt "Classify this." --debug
+    python models/LFM2.5-VL-450M/run.py --model_path /path/to/model --images photo.jpg
+    python models/LFM2.5-VL-450M/run.py --model_path /path/to/model --images img.jpg --user_prompt "Classify this." --debug
 """
 
 import argparse
@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-MODEL_ID = "LiquidAI/LFM2.5-VL-1.6B"
+MODEL_ID = "LiquidAI/LFM2.5-VL-450M"
 
 # Liquid models use image tiling with token budget control
 PROCESSOR_KWARGS = {

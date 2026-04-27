@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Run inference with google/gemma-3-4b-it.
+"""Run inference with LiquidAI/LFM2-VL-1.6B.
 
 Usage:
-    python models/gemma-3-4b-it/run.py --model_path /path/to/model --images photo.jpg
-    python models/gemma-3-4b-it/run.py --model_path /path/to/model --images img.jpg --user_prompt "Classify this." --debug
+    python models/LFM2-VL-1.6B/run.py --model_path /path/to/model --images photo.jpg
+    python models/LFM2-VL-1.6B/run.py --model_path /path/to/model --images img.jpg --user_prompt "Classify this." --debug
 """
 
 import logging
@@ -24,11 +24,13 @@ from base import (
 )
 
 # HuggingFace model ID — used as base model for LoRA adapters
-MODEL_ID = "google/gemma-3-4b-it"
+MODEL_ID = "LiquidAI/LFM2-VL-1.6B"
 
-# Gemma requires left-side padding for correct attention masking
+# Liquid models use image tiling with token budget control
 PROCESSOR_KWARGS = {
-    "padding_side": "left",
+    "min_image_tokens": 64,
+    "max_image_tokens": 256,
+    "do_image_splitting": True,
 }
 
 

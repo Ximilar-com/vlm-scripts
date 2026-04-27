@@ -15,6 +15,27 @@ from typing import List, Optional, Tuple
 
 import torch
 from PIL import Image
+
+
+def _patch_torch_autocast_compat(torch_module=None) -> bool:
+    """Make older torch builds accept the newer transformers autocast call style."""
+    torch_module = torch if torch_module is None else torch_module
+
+    try:
+        torch_module.is_autocast_enabled("cpu")
+        return False
+    except TypeError:
+        original = torch_module.is_autocast_enabled
+
+        def is_autocast_enabled(device_type=None):
+            return original()
+
+        torch_module.is_autocast_enabled = is_autocast_enabled
+        return True
+
+
+_patch_torch_autocast_compat()
+
 from transformers import AutoModelForImageTextToText, AutoProcessor
 from transformers.image_utils import load_image
 
@@ -23,7 +44,6 @@ logger = logging.getLogger(__name__)
 # Suppress noisy HTTP request logs from huggingface_hub / httpx / httpcore
 for _name in ("httpx", "httpcore", "urllib3", "huggingface_hub.file_download"):
     logging.getLogger(_name).setLevel(logging.WARNING)
-
 
 # ---------------------------------------------------------------------------
 # Default generation parameters per model
@@ -34,23 +54,23 @@ for _name in ("httpx", "httpcore", "urllib3", "huggingface_hub.file_download"):
 MODEL_DEFAULTS = {
     "LiquidAI/LFM2-VL-450M": {
         "max_tokens": 256,
-        "temperature": 0.0,        # greedy (no sampling defaults in HF config)
+        "temperature": 0.0,  # greedy (no sampling defaults in HF config)
     },
     "LiquidAI/LFM2.5-VL-1.6B": {
         "max_tokens": 256,
-        "temperature": 0.0,        # greedy (no sampling defaults in HF config)
+        "temperature": 0.0,  # greedy (no sampling defaults in HF config)
     },
     "google/gemma-3-4b-it": {
         "max_tokens": 256,
-        "temperature": 0.0,        # greedy — HF default (1.0) causes nan in float16 on MPS
+        "temperature": 0.0,  # greedy — HF default (1.0) causes nan in float16 on MPS
     },
     "Qwen/Qwen3-VL-2B-Instruct": {
         "max_tokens": 256,
-        "temperature": 0.7,        # HF default: do_sample=True, top_p=0.8, top_k=20
+        "temperature": 0.7,  # HF default: do_sample=True, top_p=0.8, top_k=20
     },
     "Qwen/Qwen3-VL-4B-Instruct": {
         "max_tokens": 256,
-        "temperature": 0.7,        # HF default: do_sample=True, top_p=0.8, top_k=20
+        "temperature": 0.7,  # HF default: do_sample=True, top_p=0.8, top_k=20
     },
 }
 
@@ -125,7 +145,7 @@ _DTYPE_MAP = {
 }
 
 
-def resolve_dtype(device: str, dtype: str = "auto") -> torch.dtype:
+def resolve_dtype(device: str, dtype: str = "auto", model_id: Optional[str] = None) -> torch.dtype:
     """Pick the optimal dtype for the given device, or use explicit override.
 
     When dtype is "auto":
@@ -136,6 +156,7 @@ def resolve_dtype(device: str, dtype: str = "auto") -> torch.dtype:
     Args:
         device: Device string (e.g. "cuda", "cpu", "mps").
         dtype: Explicit dtype string or "auto" to resolve from device.
+        model_id: Optional HuggingFace model ID for model-specific dtype quirks.
 
     Returns:
         Resolved torch.dtype.
@@ -195,9 +216,9 @@ def load_images(sources: List[str], max_size: Optional[int] = None) -> List[Imag
 
 
 def build_messages(
-    images: List[Image.Image],
-    user_prompt: str,
-    system_prompt: Optional[str] = None,
+        images: List[Image.Image],
+        user_prompt: str,
+        system_prompt: Optional[str] = None,
 ) -> list:
     """Build chat messages in OpenAI format with PIL images.
 
@@ -233,17 +254,17 @@ def build_messages(
 
 
 def print_config(
-    model_id: str,
-    model_path: str,
-    processor,
-    images: List[Image.Image],
-    device: str,
-    dtype: torch.dtype,
-    max_tokens: int,
-    temperature: float,
-    resize: Optional[int],
-    user_prompt: str,
-    system_prompt: Optional[str],
+        model_id: str,
+        model_path: str,
+        processor,
+        images: List[Image.Image],
+        device: str,
+        dtype: torch.dtype,
+        max_tokens: int,
+        temperature: float,
+        resize: Optional[int],
+        user_prompt: str,
+        system_prompt: Optional[str],
 ) -> None:
     """Print a summary of all inference parameters before running the model.
 
@@ -269,7 +290,7 @@ def print_config(
     # ANSI color codes for terminal output
     G = "\033[32m"  # green
     C = "\033[36m"  # cyan
-    R = "\033[0m"   # reset
+    R = "\033[0m"  # reset
 
     def kv(key: str, value: object) -> str:
         """Format a key-value line with green key."""
@@ -388,11 +409,11 @@ def _filter_processor_kwargs(processor_kwargs: dict, model_path: str) -> dict:
 
 
 def load_model(
-    model_id: str,
-    model_path: str,
-    device: str,
-    dtype: torch.dtype,
-    processor_kwargs: Optional[dict] = None,
+        model_id: str,
+        model_path: str,
+        device: str,
+        dtype: torch.dtype,
+        processor_kwargs: Optional[dict] = None,
 ) -> Tuple:
     """Load a model (full or LoRA) and its processor.
 
@@ -506,13 +527,13 @@ def load_model(
 
 
 def run_inference(
-    model,
-    processor,
-    messages: list,
-    images: List[Image.Image],
-    max_tokens: int = 256,
-    temperature: float = 0.0,
-    debug: bool = False,
+        model,
+        processor,
+        messages: list,
+        images: List[Image.Image],
+        max_tokens: int = 256,
+        temperature: float = 0.0,
+        debug: bool = False,
 ) -> str:
     """Run inference on a loaded model and return the generated text.
 

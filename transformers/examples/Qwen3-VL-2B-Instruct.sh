@@ -1,8 +1,9 @@
 #!/bin/bash
-# Example: Run LiquidAI LFM2.5-VL-1.6B with a LoRA adapter
+# Example: Run Qwen/Qwen3-VL-2B-Instruct with a LoRA adapter
 
-python models/LFM2.5-VL-1.6B/run.py \
-    --model_path stored/lf2-1.6b-lora/ \
+uv sync
+uv run "$(dirname "$0")/../models/Qwen3-VL-2B-Instruct/run.py" \
+    --model_path "$(dirname "$0")/../stored/qwen3-2b-lora/" \
     --images "https://m.media-amazon.com/images/I/71jGMgjyOOL._AC_SY300_SX300_QL70_ML2_.jpg" \
     --user_prompt "Assign a category, price and weight based on the provided image.
 

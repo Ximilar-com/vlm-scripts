@@ -39,7 +39,7 @@ def main():
     args = get_arg_parser(MODEL_ID).parse_args()
 
     device = resolve_device(args.device)
-    dtype = resolve_dtype(device, args.dtype)
+    dtype = resolve_dtype(device, args.dtype, model_id=MODEL_ID)
 
     model, processor = load_model(MODEL_ID, args.model_path, device, dtype, processor_kwargs=PROCESSOR_KWARGS)
     images = load_images(args.images, max_size=args.resize)

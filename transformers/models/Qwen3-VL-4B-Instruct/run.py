@@ -12,16 +12,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from base import (
-    build_messages,
-    get_arg_parser,
-    load_images,
-    load_model,
-    print_config,
-    resolve_device,
-    resolve_dtype,
-    run_inference,
-)
+from base import (build_messages,
+                  get_arg_parser,
+                  load_images,
+                  load_model,
+                  print_config,
+                  resolve_device,
+                  resolve_dtype,
+                  run_inference,
+                  )
 
 # HuggingFace model ID — used as base model for LoRA adapters
 MODEL_ID = "Qwen/Qwen3-VL-4B-Instruct"
@@ -35,7 +34,7 @@ def main():
     args = get_arg_parser(MODEL_ID).parse_args()
 
     device = resolve_device(args.device)
-    dtype = resolve_dtype(device, args.dtype)
+    dtype = resolve_dtype(device, args.dtype, model_id=MODEL_ID)
 
     model, processor = load_model(MODEL_ID, args.model_path, device, dtype, processor_kwargs=PROCESSOR_KWARGS)
     images = load_images(args.images, max_size=args.resize)
