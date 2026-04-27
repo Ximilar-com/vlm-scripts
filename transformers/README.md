@@ -90,6 +90,21 @@ cd transformers
 source .venv/bin/activate
 ```
 
+### Download a model by UUID
+
+If you want to fetch a trained model artifact directly from the Ximilar backend first, use the helper script:
+
+```bash
+export XIMILAR_API_TOKEN=your_api_token
+export XIMILAR_API_URL=https://api.ximilar.com/vlm/v2
+
+uv run python scripts/download_model.py \
+    --model_uuid 00000000-0000-0000-0000-000000000000 \
+    --output_path /path/to/local/model
+```
+
+Then run any of the existing example scripts with `--model_path /path/to/local/model`.
+
 ### Basic usage
 
 ```bash
