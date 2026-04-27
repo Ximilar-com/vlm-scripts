@@ -43,26 +43,14 @@ The scripts auto-detect the format from the model directory and handle all three
 
 ## Setup
 
+From the repository root:
+
 ```bash
 # Install uv (fast Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Create virtual environment
-uv venv .venv --python 3.12
-source .venv/bin/activate
-
-# Install dependencies
-uv pip install "transformers>=5.1.0" "peft>=0.18.1" "accelerate>=1.12.0" "safetensors>=0.7.0" pillow
-```
-
-Then install PyTorch for your platform:
-
-```bash
-# Linux with NVIDIA GPU (CUDA 12.8, but you can try to specify yours version)
-uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-
-# macOS (Apple Silicon / CPU) or Linux CPU-only
-uv pip install torch torchvision
+# Create/update the virtual environment and install dependencies from pyproject.toml
+uv sync
 ```
 
 ### HuggingFace authentication (required for some models)
@@ -77,33 +65,33 @@ Some base models (e.g. **google/gemma-3-4b-it**) are gated — you must accept t
 export HF_TOKEN=hf_your_token_here
 ```
 
-To make it permanent, add the line to your `~/.bashrc` or `~/.zshrc`.
-
-Without this, gated models will fail with `OSError: ... does not appear to have a file named model.safetensors`.
 
 ## Usage
 
-All commands below assume you are inside the `transformers/` directory:
+Install dependencies first:
 
 ```bash
-cd transformers
-source .venv/bin/activate
+uv sync
 ```
 
 ### Download a model by UUID
 
-If you want to fetch a trained model artifact directly from the Ximilar backend first, use the helper script:
+If you want to fetch a trained model artifact directly from the Ximilar backend first, run the helper script from the repository root:
 
 ```bash
 export XIMILAR_API_TOKEN=your_api_token
 export XIMILAR_API_URL=https://api.ximilar.com/vlm/v2
 
-uv run python scripts/download_model.py \
-    --model_uuid 00000000-0000-0000-0000-000000000000 \
-    --output_path /path/to/local/model
+uv run transformers/scripts/download_model.py \
+    --model-uuid 00000000-0000-0000-0000-000000000000 \
+    --output-path /path/to/local/model
 ```
 
-Then run any of the existing example scripts with `--model_path /path/to/local/model`.
+Then switch into the `transformers/` directory and run any of the existing example scripts with `--model_path /path/to/local/model`:
+
+```bash
+cd transformers
+```
 
 ### Basic usage
 

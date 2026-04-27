@@ -12,8 +12,8 @@ from client import download_and_extract_model, get_required_env
 
 def get_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Download a trained Ximilar VLM model by UUID.")
-    parser.add_argument("--model_uuid", required=True, help="UUID of the trained VLM model")
-    parser.add_argument("--output_path", required=True, help="Directory where the model should be extracted")
+    parser.add_argument("--model-uuid", required=True, help="UUID of the trained VLM model")
+    parser.add_argument("--output-path", required=True, help="Directory where the model should be extracted")
     return parser
 
 

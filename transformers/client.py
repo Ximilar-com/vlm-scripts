@@ -15,6 +15,7 @@ from pathlib import Path
 
 
 VALID_MARKERS = ("adapter_config.json", "model.pt", "config.json")
+DEFAULT_VLM_API_PATH = "/vlm/v2"
 
 
 def get_required_env(name: str) -> str:
@@ -24,9 +25,20 @@ def get_required_env(name: str) -> str:
     return value
 
 
+def normalize_vlm_api_url(api_url: str) -> str:
+    parsed = urllib.parse.urlsplit(api_url)
+    path = parsed.path.rstrip("/")
+    if not path:
+        path = DEFAULT_VLM_API_PATH
+    elif path == "/vlm":
+        path = DEFAULT_VLM_API_PATH
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, path, parsed.query, parsed.fragment))
+
+
 def request_model_download(model_uuid: str, api_url: str, api_token: str) -> dict:
+    base_api_url = normalize_vlm_api_url(api_url)
     request = urllib.request.Request(
-        f"{api_url.rstrip('/')}/model/{model_uuid}/request-download",
+        f"{base_api_url}/model/{model_uuid}/request-download/",
         headers={"Authorization": f"Token {api_token}"},
         method="GET",
     )
