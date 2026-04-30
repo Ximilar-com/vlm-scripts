@@ -19,15 +19,20 @@ def get_arg_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = get_arg_parser().parse_args()
+    print(f"[DEBUG] Parsed arguments: model_uuid={args.model_uuid} output_path={args.output_path}", file=sys.stderr)
     api_token = get_required_env("XIMILAR_API_TOKEN")
     api_url = get_required_env("XIMILAR_API_URL")
+    print(f"[DEBUG] Loaded API configuration: api_url={api_url}", file=sys.stderr)
     output_path = Path(args.output_path).expanduser().resolve()
+    print(f"[DEBUG] Resolved output path: {output_path}", file=sys.stderr)
+    print(f"[DEBUG] Starting model download for {args.model_uuid}", file=sys.stderr)
     result = download_and_extract_model(
         model_uuid=args.model_uuid,
         output_path=output_path,
         api_url=api_url,
         api_token=api_token,
     )
+    print(f"[DEBUG] Model download finished: {result}", file=sys.stderr)
     print(result)
 
 
