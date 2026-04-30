@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Download a trained Ximilar VLM model artifact by UUID."""
+"""
+Download a trained Ximilar VLM model artifact by UUID.
+
+RUN: uv run scripts/download_model.py --model-uuid <MODEL_UUID> --output-path <OUTPUT_PATH>
+"""
 
 import argparse
 import sys

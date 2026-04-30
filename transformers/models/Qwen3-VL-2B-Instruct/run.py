@@ -28,8 +28,6 @@ MODEL_ID = "Qwen/Qwen3-VL-2B-Instruct"
 
 # Qwen3-VL uses dynamic resolution — no special processor kwargs needed
 PROCESSOR_KWARGS = {}
-
-
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     args = get_arg_parser(MODEL_ID).parse_args()

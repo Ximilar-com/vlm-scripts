@@ -30,8 +30,6 @@ MODEL_ID = "google/gemma-4-E2B-it"
 PROCESSOR_KWARGS = {
     "padding_side": "left",
 }
-
-
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     args = get_arg_parser(MODEL_ID).parse_args()

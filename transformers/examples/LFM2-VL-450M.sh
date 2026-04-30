@@ -2,8 +2,14 @@
 # Example: Run LiquidAI/LFM2-VL-450M with a LoRA adapter
 
 uv sync
-uv run "$(dirname "$0")/../models/LFM2-VL-450M/run.py" \
-    --model_path "$(dirname "$0")/../stored/lf2-450-lora/" \
+export MODEL_PATH="../stored/lf2-450-lora/model"
+export RUN_SCRIPT="./models/LFM2-VL-450M/run.py"
+[ -d "$MODEL_PATH" ] && [ -f "$RUN_SCRIPT" ] || echo "INVALID PATHS"
+[ -d "$MODEL_PATH" ] && [ -f "$RUN_SCRIPT" ] && [[ "$(basename "$PWD")" == "transformers" ]] || echo "You have to be in the transformers directory to run this script"
+echo "Using model path: $MODEL_PATH"
+echo "Using run script: $RUN_SCRIPT"
+uv run $RUN_SCRIPT \
+    --model_path "$MODEL_PATH" \
     --images "https://m.media-amazon.com/images/I/71jGMgjyOOL._AC_SY300_SX300_QL70_ML2_.jpg" \
     --user_prompt "Assign a category, price and weight based on the provided image.
 

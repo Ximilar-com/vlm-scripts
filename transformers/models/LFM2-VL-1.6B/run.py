@@ -32,8 +32,6 @@ PROCESSOR_KWARGS = {
     "max_image_tokens": 256,
     "do_image_splitting": True,
 }
-
-
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     args = get_arg_parser(MODEL_ID).parse_args()
