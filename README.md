@@ -11,6 +11,7 @@ When you train a VLM on Ximilar, you can download the model and run it locally. 
 Run your models using Python with HuggingFace Transformers and PEFT (for LoRA adapters).
 
 - Simple `run.py` script per model
+- Optional helper script `transformers/scripts/download_model.py` to download a trained model artifact by UUID before inference
 - Supports LoRA adapters (`.safetensors`), full models (`.safetensors`), and PyTorch exports (`.pt`)
 - Auto-detects model format from directory contents
 - Works on NVIDIA GPU (CUDA), Apple Silicon (MPS), and CPU

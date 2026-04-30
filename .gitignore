@@ -9,6 +9,12 @@ tokenizer.*
 __pycache__/
 *.pyc
 .venv/
+docs/
 
 # OS
 .DS_Store
+.env
+.idea/
+.codex
+
+tmp/

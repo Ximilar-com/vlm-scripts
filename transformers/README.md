@@ -12,13 +12,18 @@ The scripts auto-detect the format from the model directory and handle all three
 
 ## Supported Models
 
-| Model | Script | Base Model (HuggingFace) |
-|---|---|---|
-| LiquidAI LFM2-VL-450M | [models/LFM2-VL-450M/run.py](models/LFM2-VL-450M/run.py) | [LiquidAI/LFM2-VL-450M](https://huggingface.co/LiquidAI/LFM2-VL-450M) |
-| LiquidAI LFM2.5-VL-1.6B | [models/LFM2.5-VL-1.6B/run.py](models/LFM2.5-VL-1.6B/run.py) | [LiquidAI/LFM2.5-VL-1.6B](https://huggingface.co/LiquidAI/LFM2.5-VL-1.6B) |
-| Google Gemma 3 4B | [models/gemma-3-4b-it/run.py](models/gemma-3-4b-it/run.py) | [google/gemma-3-4b-it](https://huggingface.co/google/gemma-3-4b-it) |
-| Qwen3-VL 2B | [models/Qwen3-VL-2B-Instruct/run.py](models/Qwen3-VL-2B-Instruct/run.py) | [Qwen/Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) |
-| Qwen3-VL 4B | [models/Qwen3-VL-4B-Instruct/run.py](models/Qwen3-VL-4B-Instruct/run.py) | [Qwen/Qwen3-VL-4B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct) |
+| Model                   | Script                                                                   | Base Model (HuggingFace)                                                      |
+|-------------------------|--------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| LiquidAI LFM2-VL-450M   | [models/LFM2-VL-450M/run.py](models/LFM2-VL-450M/run.py)                 | [LiquidAI/LFM2-VL-450M](https://huggingface.co/LiquidAI/LFM2-VL-450M)         |
+| LiquidAI LFM2-VL-1.6B   | [models/LFM2-VL-1.6B/run.py](models/LFM2-VL-1.6B/run.py)                 | [LiquidAI/LFM2-VL-1.6B](https://huggingface.co/LiquidAI/LFM2-VL-1.6B)         |
+| LiquidAI LFM2-VL-3B     | [models/LFM2-VL-3B/run.py](models/LFM2-VL-3B/run.py)                     | [LiquidAI/LFM2-VL-3B](https://huggingface.co/LiquidAI/LFM2-VL-3B)             |
+| LiquidAI LFM2.5-VL-450M | [models/LFM2.5-VL-450M/run.py](models/LFM2.5-VL-450M/run.py)             | [LiquidAI/LFM2.5-VL-450M](https://huggingface.co/LiquidAI/LFM2.5-VL-450M)     |
+| LiquidAI LFM2.5-VL-1.6B | [models/LFM2.5-VL-1.6B/run.py](models/LFM2.5-VL-1.6B/run.py)             | [LiquidAI/LFM2.5-VL-1.6B](https://huggingface.co/LiquidAI/LFM2.5-VL-1.6B)     |
+| Google Gemma 3 4B PT    | [models/gemma-3-4b-pt/run.py](models/gemma-3-4b-pt/run.py)               | [google/gemma-3-4b-pt](https://huggingface.co/google/gemma-3-4b-pt)           |
+| Google Gemma 3 4B       | [models/gemma-3-4b-it/run.py](models/gemma-3-4b-it/run.py)               | [google/gemma-3-4b-it](https://huggingface.co/google/gemma-3-4b-it)           |
+| Google Gemma 4 E2B      | [models/gemma-4-E2B-it/run.py](models/gemma-4-E2B-it/run.py)             | [google/gemma-4-E2B-it](https://huggingface.co/google/gemma-4-E2B-it)         |
+| Qwen3-VL 2B             | [models/Qwen3-VL-2B-Instruct/run.py](models/Qwen3-VL-2B-Instruct/run.py) | [Qwen/Qwen3-VL-2B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct) |
+| Qwen3-VL 4B             | [models/Qwen3-VL-4B-Instruct/run.py](models/Qwen3-VL-4B-Instruct/run.py) | [Qwen/Qwen3-VL-4B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct) |
 
 ## Requirements
 
@@ -27,37 +32,25 @@ The scripts auto-detect the format from the model directory and handle all three
 
 ### Library versions
 
-| Library | Version |
-|---|---|
-| torch | >= 2.10.0 |
-| transformers | >= 5.1.0 |
-| peft | >= 0.18.1 |
-| accelerate | >= 1.12.0 |
-| safetensors | >= 0.7.0 |
-| pillow | >= 10.0 |
+| Library      | Version   |
+|--------------|-----------|
+| torch        | >= 2.10.0 |
+| transformers | >= 5.1.0  |
+| peft         | >= 0.18.1 |
+| accelerate   | >= 1.12.0 |
+| safetensors  | >= 0.7.0  |
+| pillow       | >= 10.0   |
 
 ## Setup
+
+From the repository root:
 
 ```bash
 # Install uv (fast Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Create virtual environment
-uv venv .venv --python 3.12
-source .venv/bin/activate
-
-# Install dependencies
-uv pip install "transformers>=5.1.0" "peft>=0.18.1" "accelerate>=1.12.0" "safetensors>=0.7.0" pillow
-```
-
-Then install PyTorch for your platform:
-
-```bash
-# Linux with NVIDIA GPU (CUDA 12.8, but you can try to specify yours version)
-uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-
-# macOS (Apple Silicon / CPU) or Linux CPU-only
-uv pip install torch torchvision
+# Create/update the virtual environment and install dependencies from pyproject.toml
+uv sync
 ```
 
 ### HuggingFace authentication (required for some models)
@@ -72,17 +65,32 @@ Some base models (e.g. **google/gemma-3-4b-it**) are gated — you must accept t
 export HF_TOKEN=hf_your_token_here
 ```
 
-To make it permanent, add the line to your `~/.bashrc` or `~/.zshrc`.
-
-Without this, gated models will fail with `OSError: ... does not appear to have a file named model.safetensors`.
 
 ## Usage
 
-All commands below assume you are inside the `transformers/` directory:
+Install dependencies first:
+
+```bash
+uv sync
+```
+
+### Download a model by UUID
+
+If you want to fetch a trained model artifact directly from the Ximilar backend first, run the helper script from the repository root:
+
+```bash
+export XIMILAR_API_TOKEN=your_api_token
+export XIMILAR_API_URL=https://api.ximilar.com/vlm/v2
+
+uv run transformers/scripts/download_model.py \
+    --model-uuid 00000000-0000-0000-0000-000000000000 \
+    --output-path /path/to/local/model
+```
+
+Then switch into the `transformers/` directory and run any of the existing example scripts with `--model_path /path/to/local/model`:
 
 ```bash
 cd transformers
-source .venv/bin/activate
 ```
 
 ### Basic usage
@@ -92,6 +100,14 @@ python models/LFM2.5-VL-1.6B/run.py \
     --model_path /path/to/your/model \
     --images photo.jpg \
     --user_prompt "Describe this image."
+```
+
+On Apple Silicon, `LiquidAI/LFM2.5-VL-*` models require explicit MPS CPU fallback opt-in before Python starts:
+
+```bash
+PYTORCH_ENABLE_MPS_FALLBACK=1 python models/LFM2.5-VL-1.6B/run.py \
+    --model_path /path/to/your/model \
+    --images photo.jpg
 ```
 
 ### With URL images and system prompt
@@ -130,30 +146,35 @@ This prints token counts, input tensor shapes, generation time, and tokens/sec.
 
 ### Arguments
 
-| Argument | Required | Default | Description |
-|---|---|---|---|
-| `--model_path` | Yes | - | Path to your downloaded model directory |
-| `--images` | No | none | One or more image file paths or URLs |
-| `--user_prompt` | No | "Describe this image." | Text prompt for the model |
-| `--system_prompt` | No | None | System instruction (optional) |
-| `--max_tokens` | No | per model | Maximum tokens to generate |
-| `--temperature` | No | per model | Sampling temperature (0.0 = greedy) |
-| `--device` | No | auto | Device: auto, cpu, cuda, cuda:0, mps |
-| `--dtype` | No | auto | Dtype: auto, float32, float16, bfloat16 |
-| `--resize` | No | None | Max image resolution — downscale proportionally |
-| `--debug` | No | off | Show token counts, timing, and input details |
+| Argument          | Required | Default                | Description                                     |
+|-------------------|----------|------------------------|-------------------------------------------------|
+| `--model_path`    | Yes      | -                      | Path to your downloaded model directory         |
+| `--images`        | No       | none                   | One or more image file paths or URLs            |
+| `--user_prompt`   | No       | "Describe this image." | Text prompt for the model                       |
+| `--system_prompt` | No       | None                   | System instruction (optional)                   |
+| `--max_tokens`    | No       | per model              | Maximum tokens to generate                      |
+| `--temperature`   | No       | per model              | Sampling temperature (0.0 = greedy)             |
+| `--device`        | No       | auto                   | Device: auto, cpu, cuda, cuda:0, mps            |
+| `--dtype`         | No       | auto                   | Dtype: auto, float32, float16, bfloat16         |
+| `--resize`        | No       | None                   | Max image resolution — downscale proportionally |
+| `--debug`         | No       | off                    | Show token counts, timing, and input details    |
 
 ### Default generation parameters
 
 Each model has sensible defaults from its HuggingFace config. You can override them with `--max_tokens` and `--temperature`.
 
-| Model | max_tokens | temperature | Notes |
-|---|---|---|---|
-| LFM2-VL-450M | 256 | 0.0 (greedy) | No sampling defaults in HF config |
-| LFM2.5-VL-1.6B | 256 | 0.0 (greedy) | No sampling defaults in HF config |
-| gemma-3-4b-it | 256 | 0.0 (greedy) | HF default is 1.0 but causes issues in float16 |
-| Qwen3-VL-2B-Instruct | 256 | 0.7 | HF: do_sample=True, top_p=0.8, top_k=20 |
-| Qwen3-VL-4B-Instruct | 256 | 0.7 | HF: do_sample=True, top_p=0.8, top_k=20 |
+| Model                | max_tokens | temperature  | Notes                                          |
+|----------------------|------------|--------------|------------------------------------------------|
+| LFM2-VL-450M         | 256        | 0.0 (greedy) | No sampling defaults in HF config              |
+| LFM2-VL-1.6B         | 256        | 0.0 (greedy) | Falls back to script defaults                  |
+| LFM2-VL-3B           | 256        | 0.0 (greedy) | Falls back to script defaults                  |
+| LFM2.5-VL-450M       | 256        | 0.0 (greedy) | Falls back to script defaults                  |
+| LFM2.5-VL-1.6B       | 256        | 0.0 (greedy) | No sampling defaults in HF config              |
+| gemma-3-4b-pt        | 256        | 0.0 (greedy) | Falls back to script defaults                  |
+| gemma-3-4b-it        | 256        | 0.0 (greedy) | HF default is 1.0 but causes issues in float16 |
+| gemma-4-E2B-it       | 256        | 0.0 (greedy) | Falls back to script defaults                  |
+| Qwen3-VL-2B-Instruct | 256        | 0.7          | HF: do_sample=True, top_p=0.8, top_k=20        |
+| Qwen3-VL-4B-Instruct | 256        | 0.7          | HF: do_sample=True, top_p=0.8, top_k=20        |
 
 ## How it works
 
@@ -169,11 +190,11 @@ The base model (for LoRA) is automatically cached in `~/.cache/huggingface/hub` 
 
 Each model family handles images differently:
 
-| Model | Image handling |
-|---|---|
+| Model                    | Image handling                                                                                                                                    |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Liquid (LFM2/LFM2.5)** | Image tiling (`do_image_splitting`) with token budget (`min_image_tokens`, `max_image_tokens`). Splits large images into tiles for better detail. |
-| **Gemma 3** | Fixed resolution, no tiling. |
-| **Qwen3-VL** | Dynamic resolution — images are rescaled to fit within a pixel budget while preserving aspect ratio. |
+| **Gemma 3**              | Fixed resolution, no tiling.                                                                                                                      |
+| **Qwen3-VL**             | Dynamic resolution — images are rescaled to fit within a pixel budget while preserving aspect ratio.                                              |
 
 **Important**: Your model's training settings are always respected. If your model was trained with `do_image_splitting=False`, the script detects this from the saved `preprocessor_config.json` and does not override it. Default processor kwargs (like tiling) are only applied when the model's own config doesn't specify them.
 
@@ -188,15 +209,16 @@ RuntimeError: probability tensor contains either `inf`, `nan` or element < 0
 This is a known issue with Gemma 3 models caused by multiple bugs in the transformers library:
 
 - **SDPA attention + padding** produces NaN on CPU/MPS. Fix: we use `attn_implementation="eager"` by default.
-- **float16 overflow** in RMSNorm layers. Fix: we use `bfloat16` by default, which matches the model's training precision.
+- **float16 overflow** in RMSNorm layers. Fix: on CUDA/CPU we use `bfloat16` by default, which matches the model's training precision. On MPS, the scripts fall back to `float16` because `bfloat16` is not universally supported there.
 - **float32 embedding scale mismatch** — the model was trained with bfloat16-rounded scale values, so float32 produces slightly different logits that accumulate into NaN.
 
 If you still see this error, try:
+
 ```bash
 # Force greedy decoding (no sampling)
 --temperature 0.0
 
-# Or force bfloat16 explicitly
+# Or force bfloat16 explicitly (CUDA/CPU only)
 --dtype bfloat16
 ```
 
@@ -208,13 +230,26 @@ RuntimeError: Invalid buffer size: 8.01 GiB
 
 MPS cannot allocate large contiguous memory blocks. The scripts load models on CPU first, then move to MPS incrementally. However, larger models (4B+) may still exceed available GPU memory.
 
+### LFM2.5 on Apple Silicon: explicit MPS fallback required
+
+`LiquidAI/LFM2.5-VL-*` models can hit MPS -> CPU fallback ops during image preprocessing. The scripts no longer enable that fallback automatically.
+
+If you want to run those models on MPS, set the env var yourself before Python starts:
+
+```bash
+PYTORCH_ENABLE_MPS_FALLBACK=1 python models/LFM2.5-VL-1.6B/run.py ...
+```
+
+If you do not want MPS, pass `--device cpu`.
+
 Workarounds:
+
 ```bash
 # Run on CPU instead (slower but works)
 --device cpu
 
-# Use bfloat16 to halve memory (default)
---dtype bfloat16
+# MPS uses float16 by default because bfloat16 is not always supported
+--dtype float16
 ```
 
 **Recommended**: Models up to ~2B parameters work well on MPS. For 4B+ models, use CPU or a CUDA GPU.
@@ -224,6 +259,7 @@ Workarounds:
 Generation on MPS can appear stuck for larger models — it's not frozen, just slow. Vision models are especially heavy because the image encoder runs before text generation.
 
 Tips:
+
 - Use `--resize 384` to reduce image size and speed up processing
 - Use `--max_tokens 50` for quick tests
 - Use `--device cpu` which can be faster than MPS for some model sizes
@@ -237,6 +273,7 @@ OSError: google/gemma-3-4b-it does not appear to have a file named model.safeten
 This means HuggingFace authentication failed. The error message is misleading — the files exist but you don't have access. See the [HuggingFace authentication](#huggingface-authentication-required-for-some-models) section above.
 
 Common causes:
+
 - `HF_TOKEN` not set in your shell
 - Token is a **fine-grained** token without read access — use a **Read** token instead
 - License not accepted on the model's HuggingFace page
@@ -250,6 +287,7 @@ Gemma 3 (4B parameters) with a LoRA adapter on CPU is very slow — expect **5-1
 3. The vision encoder processes pixel values before text generation
 
 For faster results:
+
 - Use a **CUDA GPU** (`--device cuda`) — this is how Gemma 3 is meant to run
 - Use **Liquid LFM2-VL-450M** on CPU — 10x smaller and much faster
 - Use `--resize 384` to reduce image processing time

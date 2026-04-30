@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Run inference with LiquidAI/LFM2-VL-450M.
+"""Run inference with LiquidAI/LFM2-VL-1.6B.
 
 Usage:
-    python models/LFM2-VL-450M/run.py --model_path /path/to/model --images photo.jpg
-    python models/LFM2-VL-450M/run.py --model_path /path/to/model --images img.jpg --user_prompt "Classify this." --debug
+    python models/LFM2-VL-1.6B/run.py --model_path /path/to/model --images photo.jpg
+    python models/LFM2-VL-1.6B/run.py --model_path /path/to/model --images img.jpg --user_prompt "Classify this." --debug
 """
 
 import logging
@@ -24,7 +24,7 @@ from base import (
 )
 
 # HuggingFace model ID — used as base model for LoRA adapters
-MODEL_ID = "LiquidAI/LFM2-VL-450M"
+MODEL_ID = "LiquidAI/LFM2-VL-1.6B"
 
 # Liquid models use image tiling with token budget control
 PROCESSOR_KWARGS = {
