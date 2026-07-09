@@ -1,14 +1,15 @@
 """
 Shared utilities for running Ximilar VLM models.
 
-This module provides all the building blocks for loading a model,
-processing images, and running vision-language inference. Each model's
-run.py script imports from here and only defines model-specific config.
+This module provides all the building blocks for downloading a model,
+loading it, processing images, and running vision-language inference.
+Each model's run.py script imports from here and only defines
+model-specific constants.
 """
 
-import argparse
 import json
 import logging
+import os
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -39,78 +40,81 @@ _patch_torch_autocast_compat()
 from transformers import AutoModelForImageTextToText, AutoProcessor
 from transformers.image_utils import load_image
 
+import client
+
 logger = logging.getLogger(__name__)
 
 # Suppress noisy HTTP request logs from huggingface_hub / httpx / httpcore
 for _name in ("httpx", "httpcore", "urllib3", "huggingface_hub.file_download"):
     logging.getLogger(_name).setLevel(logging.WARNING)
 
-# ---------------------------------------------------------------------------
-# Default generation parameters per model
-# ---------------------------------------------------------------------------
-# These come from each model's generation_config.json on HuggingFace.
-# Users can override any of these via command-line arguments.
+# Env var naming the base directory all models are downloaded/extracted into.
+MODEL_DOWNLOAD_DIRECTORY_ENV = "MODEL_DOWNLOAD_DIRECTORY"
 
-MODEL_DEFAULTS = {
-    "LiquidAI/LFM2-VL-450M": {
-        "max_tokens": 256,
-        "temperature": 0.0,  # greedy (no sampling defaults in HF config)
-    },
-    "LiquidAI/LFM2.5-VL-1.6B": {
-        "max_tokens": 256,
-        "temperature": 0.0,  # greedy (no sampling defaults in HF config)
-    },
-    "google/gemma-3-4b-it": {
-        "max_tokens": 256,
-        "temperature": 0.0,  # greedy — HF default (1.0) causes nan in float16 on MPS
-    },
-    "Qwen/Qwen3-VL-2B-Instruct": {
-        "max_tokens": 256,
-        "temperature": 0.7,  # HF default: do_sample=True, top_p=0.8, top_k=20
-    },
-    "Qwen/Qwen3-VL-4B-Instruct": {
-        "max_tokens": 256,
-        "temperature": 0.7,  # HF default: do_sample=True, top_p=0.8, top_k=20
-    },
-}
+MODEL_DETAILS_PAGE = "https://app.ximilar.com/platform/vlm/tasks/"
 
 
 # ---------------------------------------------------------------------------
-# Argument parsing
+# Model download
 # ---------------------------------------------------------------------------
 
 
-def get_arg_parser(model_id: str) -> argparse.ArgumentParser:
-    """Create an argument parser with all common VLM inference arguments.
+def ensure_model(model_url_env: str, model_id: str) -> str:
+    """Return a local model directory, downloading the model on first use.
 
-    Default values for --max_tokens and --temperature are loaded from
-    MODEL_DEFAULTS for the given model. Users can override them.
+    Two environment variables drive the download:
+    - MODEL_DOWNLOAD_DIRECTORY (required): base directory where models are
+      downloaded and extracted; each model gets its own subfolder named
+      after the model.
+    - The env var named by model_url_env (required on first download): the
+      model archive URL — copy it from your model's details page at
+      https://app.ximilar.com/platform/vlm/tasks/ (the link is valid for
+      24 hours).
+
+    Later runs find the extracted subfolder and skip the download entirely.
 
     Args:
-        model_id: HuggingFace model ID (e.g. "LiquidAI/LFM2.5-VL-1.6B").
+        model_url_env: Name of the env var holding the model download URL
+            (e.g. "MODEL_URL_HF_LFM2_5_450M").
+        model_id: HuggingFace model ID (e.g. "LiquidAI/LFM2.5-VL-450M");
+            its last segment names the per-model subfolder.
 
     Returns:
-        Configured ArgumentParser ready for parse_args().
+        Path to the local model directory, ready for load_model().
     """
-    defaults = MODEL_DEFAULTS.get(model_id, {})
-    default_max_tokens = defaults.get("max_tokens", 256)
-    default_temperature = defaults.get("temperature", 0.0)
+    base_dir = os.environ.get(MODEL_DOWNLOAD_DIRECTORY_ENV)
+    if not base_dir:
+        raise RuntimeError(
+            f"Environment variable {MODEL_DOWNLOAD_DIRECTORY_ENV} is not set.\n"
+            f"Set it to the base directory where models should be downloaded and extracted\n"
+            f"(each model gets its own subfolder), e.g.:\n"
+            f"    export {MODEL_DOWNLOAD_DIRECTORY_ENV}=./stored"
+        )
 
-    parser = argparse.ArgumentParser(
-        description=f"Run inference with {model_id}",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument("--model_path", type=str, required=True, help="Path to model directory (safetensors, .pt, or LoRA adapter)")
-    parser.add_argument("--images", nargs="+", default=[], help="Image file paths or URLs (optional for text-only)")
-    parser.add_argument("--user_prompt", type=str, default="Describe this image.", help="User prompt")
-    parser.add_argument("--system_prompt", type=str, default=None, help="System prompt (optional)")
-    parser.add_argument("--max_tokens", type=int, default=default_max_tokens, help=f"Maximum tokens to generate (default: {default_max_tokens})")
-    parser.add_argument("--temperature", type=float, default=default_temperature, help=f"Sampling temperature, 0.0 = greedy (default: {default_temperature})")
-    parser.add_argument("--device", type=str, default="auto", help="Device: auto, cpu, cuda, cuda:0, mps (default: auto)")
-    parser.add_argument("--dtype", type=str, default="auto", help="Dtype: auto, float32, float16, bfloat16 (default: auto, resolved from device)")
-    parser.add_argument("--resize", type=int, default=None, help="Max image resolution — images larger than this are downscaled proportionally (e.g. 768)")
-    parser.add_argument("--debug", action="store_true", help="Show debug info: token counts, timing, input/output details")
-    return parser
+    cache_dir = Path(base_dir).expanduser().resolve() / model_id.split("/")[-1]
+    if cache_dir.is_dir():
+        try:
+            model_dir = client.resolve_model_dir(cache_dir)
+            client.validate_model_dir(model_dir)
+            logger.info("Using cached model: %s", model_dir)
+            return str(model_dir)
+        except RuntimeError:
+            logger.warning("Cached model at %s is incomplete — re-downloading", cache_dir)
+
+    download_url = os.environ.get(model_url_env)
+    if not download_url:
+        raise RuntimeError(
+            f"Environment variable {model_url_env} is not set.\n"
+            f"Set it to your model's download URL, e.g.:\n"
+            f"    export {model_url_env}='https://...'\n"
+            f"You can copy the URL from the model details page at {MODEL_DETAILS_PAGE}\n"
+            f"(open your task, click the download action on the trained model, then Copy link)."
+        )
+
+    logger.info("Downloading model to %s ...", cache_dir)
+    model_dir = client.download_model_from_url(download_url, cache_dir)
+    logger.info("Model downloaded: %s", model_dir)
+    return str(model_dir)
 
 
 # ---------------------------------------------------------------------------
@@ -145,7 +149,7 @@ _DTYPE_MAP = {
 }
 
 
-def resolve_dtype(device: str, dtype: str = "auto", model_id: Optional[str] = None) -> torch.dtype:
+def resolve_dtype(device: str, dtype: str = "auto") -> torch.dtype:
     """Pick the optimal dtype for the given device, or use explicit override.
 
     When dtype is "auto":
@@ -156,7 +160,6 @@ def resolve_dtype(device: str, dtype: str = "auto", model_id: Optional[str] = No
     Args:
         device: Device string (e.g. "cuda", "cpu", "mps").
         dtype: Explicit dtype string or "auto" to resolve from device.
-        model_id: Optional HuggingFace model ID for model-specific dtype quirks.
 
     Returns:
         Resolved torch.dtype.
@@ -414,6 +417,7 @@ def load_model(
         device: str,
         dtype: torch.dtype,
         processor_kwargs: Optional[dict] = None,
+        auto_model_class=AutoModelForImageTextToText,
 ) -> Tuple:
     """Load a model (full or LoRA) and its processor.
 
@@ -431,12 +435,13 @@ def load_model(
         dtype: Torch dtype for model weights (e.g. torch.bfloat16).
         processor_kwargs: Optional kwargs for AutoProcessor.from_pretrained()
             (e.g. min_image_tokens, padding_side).
+        auto_model_class: HuggingFace auto class used to load the model
+            (default AutoModelForImageTextToText). Some families use a
+            different class, e.g. gemma-4 uses AutoModelForMultimodalLM.
 
     Returns:
         Tuple of (model, processor) ready for inference.
     """
-    import os
-
     is_lora = (Path(model_path) / "adapter_config.json").exists()
     is_pt = (Path(model_path) / "model.pt").exists()
 
@@ -458,7 +463,7 @@ def load_model(
 
         logger.info("Detected LoRA adapter (adapter_config.json found)")
         logger.info("Loading base model from HuggingFace: %s", model_id)
-        model = AutoModelForImageTextToText.from_pretrained(
+        model = auto_model_class.from_pretrained(
             model_id,
             device_map=load_device,
             torch_dtype=dtype,
@@ -489,7 +494,7 @@ def load_model(
         state_dict = torch.load(pt_file, map_location=load_device, weights_only=True)
 
         config = AutoConfig.from_pretrained(model_path)
-        model = AutoModelForImageTextToText.from_config(config, attn_implementation="eager")
+        model = auto_model_class.from_config(config, attn_implementation="eager")
         model.load_state_dict(state_dict)
         del state_dict  # free memory before dtype/device transfer
         model = model.to(dtype=dtype, device=load_device)
@@ -503,7 +508,7 @@ def load_model(
     else:
         # Fully fine-tuned model (safetensors): load directly from the directory
         logger.info("Loading full model: %s", model_path)
-        model = AutoModelForImageTextToText.from_pretrained(
+        model = auto_model_class.from_pretrained(
             model_path,
             device_map=load_device,
             torch_dtype=dtype,
